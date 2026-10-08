@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccessVoice AI - Voice-Based Accessibility Assistant</title>
+    <meta name="description" content="A modern, professional voice-based accessibility assistant empowering users to navigate, read, and control settings using voice commands.">
+    <!-- Font Awesome for Accessible Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-normal text-normal">
+    <!-- Skip to main content link for screen reader / keyboard navigation -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- ARIA Live Region for Screen Reader Announcements -->
+    <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container">
+        
+        <!-- HEADER -->
+        <header class="app-header" role="banner">
+            <div class="header-brand">
+                <div class="logo-icon" aria-hidden="true">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                </div>
+                <div class="brand-text">
+                    <h1 class="logo-title">AccessVoice AI</h1>
+                    <p class="subtitle">Technology that listens, understands and assists.</p>
+                </div>
+            </div>
+
+            <!-- Quick Accessibility Controls -->
+            <div class="header-actions" role="toolbar" aria-label="Quick Accessibility Controls">
+                <button id="contrast-toggle-btn" class="quick-btn" title="Toggle High Contrast Mode" aria-pressed="false">
+                    <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                    <span>High Contrast</span>
+                </button>
+                <button id="text-size-quick-btn" class="quick-btn" title="Toggle Text Size">
+                    <i class="fa-solid fa-font" aria-hidden="true"></i>
+                    <span id="text-size-label">Text: Normal</span>
+                </button>
+                <button id="emergency-btn" class="quick-btn btn-danger" title="Trigger Emergency Assistance">
+                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    <span>Emergency Help</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- NAVIGATION BAR -->
+        <nav class="app-nav" aria-label="Main Navigation">
+            <ul class="nav-tabs" role="tablist">
+                <li role="presentation">
+                    <button id="tab-home" class="nav-tab active" role="tab" aria-selected="true" aria-controls="view-home">
+                        <i class="fa-solid fa-house" aria-hidden="true"></i>
+                        <span>Dashboard</span>
+                    </button>
+                </li>
+                <li role="presentation">
+                    <button id="tab-reader" class="nav-tab" role="tab" aria-selected="false" aria-controls="view-reader">
+                        <i class="fa-solid fa-book-open-reader" aria-hidden="true"></i>
+                        <span>Read Page</span>
+                    </button>
+                </li>
+                <li role="presentation">
+                    <button id="tab-history" class="nav-tab" role="tab" aria-selected="false" aria-controls="view-history">
+                        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                        <span>Command History</span>
+                    </button>
+                </li>
+                <li role="presentation">
+                    <button id="tab-settings" class="nav-tab" role="tab" aria-selected="false" aria-controls="view-settings">
+                        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                        <span>Settings</span>
+                    </button>
+                </li>
+                <li role="presentation">
+                    <button id="tab-help" class="nav-tab" role="tab" aria-selected="false" aria-controls="view-help">
+                        <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                        <span>Help & Commands</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- MAIN CONTENT CONTAINER -->
+        <main id="main-content" class="main-content" tabindex="-1">
+            
+            <!-- BROWSER UNSUPPORTED ALERT BANNER -->
+            <div id="browser-warning" class="alert-banner alert-warning hidden" role="alert">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <div>
+                    <strong>Browser Compatibility Notice:</strong>
+                    <span id="browser-warning-text">This browser does not support full voice recognition. Please use Google Chrome or Microsoft Edge for voice interaction. Manual control buttons are fully functional below.</span>
+                </div>
+            </div>
+
+            <!-- VIEW 1: DASHBOARD (HOME) -->
+            <section id="view-home" class="tab-view active" role="tabpanel" aria-labelledby="tab-home">
+                
+                <!-- TOP STATUS & STATS GRID -->
+                <div class="dashboard-stats-grid">
+                    <!-- Status Card -->
+                    <div class="stat-card status-card">
+                        <div class="card-icon status-indicator-wrapper">
+                            <span id="status-badge" class="status-badge state-ready" aria-hidden="true"></span>
+                            <i id="status-icon" class="fa-solid fa-check-circle" aria-hidden="true"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="card-label">Assistant Status</span>
+                            <h2 id="status-text" class="card-value">Ready</h2>
+                        </div>
+                    </div>
+
+                    <!-- Commands Today Card -->
+                    <div class="stat-card">
+                        <div class="card-icon icon-blue">
+                            <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="card-label">Commands Today</span>
+                            <h2 id="stat-commands-count" class="card-value">0</h2>
+                        </div>
+                    </div>
+
+                    <!-- Contrast Mode Stat -->
+                    <div class="stat-card">
+                        <div class="card-icon icon-purple">
+                            <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="card-label">High Contrast</span>
+                            <h2 id="stat-contrast-mode" class="card-value">OFF</h2>
+                        </div>
+                    </div>
+
+                    <!-- Current Text Size Stat -->
+                    <div class="stat-card">
+                        <div class="card-icon icon-orange">
+                            <i class="fa-solid fa-text-height" aria-hidden="true"></i>
+                        </div>
+                        <div class="card-info">
+                            <span class="card-label">Text Size</span>
+                            <h2 id="stat-text-size" class="card-value">Normal</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CENTRAL MICROPHONE SECTION -->
+                <div class="mic-hero-card">
+                    <div class="mic-visualizer-wrapper">
+                        <!-- Ripple Rings -->
+                        <div id="mic-ripple-1" class="mic-ripple"></div>
+                        <div id="mic-ripple-2" class="mic-ripple"></div>
+
+                        <!-- Main Central Mic Button -->
+                        <button id="mic-btn" class="main-mic-btn" aria-label="Start Voice Recognition. Shortcut: Space bar" title="Click or Press Space bar to Speak">
+                            <div class="mic-icon-inner">
+                                <i id="mic-btn-icon" class="fa-solid fa-microphone"></i>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="mic-status-container">
+                        <h2 id="mic-action-text" class="mic-action-title">🎙️ Click or Press Space to Speak</h2>
+                        <p class="mic-hint-text">Shortcuts: Press <kbd>Space</kbd> or <kbd>Alt + S</kbd> to toggle listening | Press <kbd>Esc</kbd> to stop speaking</p>
+                    </div>
+                </div>
+
+                <!-- LIVE SPEECH INTERACTION CARD -->
+                <div class="speech-interaction-grid">
+                    <!-- User Speech Box -->
+                    <div class="interaction-card user-speech-card">
+                        <div class="interaction-header">
+                            <i class="fa-solid fa-user-gear" aria-hidden="true"></i>
+                            <h3>You Said</h3>
+                        </div>
+                        <div class="interaction-body">
+                            <p id="user-speech-text" class="speech-bubble user-bubble">
+                                <em>"Click the microphone and say something like 'What can you do?'..."</em>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Assistant Response Box -->
+                    <div class="interaction-card assistant-response-card">
+                        <div class="interaction-header">
+                            <i class="fa-solid fa-robot" aria-hidden="true"></i>
+                            <h3>Assistant Response</h3>
+                            <!-- Audio visualizer bars when speaking -->
+                            <div id="speaking-visualizer" class="speaking-bars hidden" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="interaction-body">
+                            <p id="assistant-speech-text" class="speech-bubble assistant-bubble">
+                                "Hello! I am AccessVoice AI. How can I assist you today?"
+                            </p>
+                        </div>
+                        <div class="interaction-footer">
+                            <button id="replay-response-btn" class="btn btn-secondary btn-sm" title="Repeat last assistant response">
+                                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Repeat Response
+                            </button>
+                            <button id="stop-speech-btn" class="btn btn-outline btn-sm" title="Stop assistant voice response">
+                                <i class="fa-solid fa-volume-xmark" aria-hidden="true"></i> Stop Speaking
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DEMO MODE & QUICK SUGGESTIONS -->
+                <div class="card demo-suggestions-card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+                        <h3>Try Saying (Click to Test Command)</h3>
+                    </div>
+                    <div class="demo-chips-container" role="group" aria-label="Suggested Voice Commands">
+                        <button class="demo-chip-btn" data-command="Hello">
+                            <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+                            <span>🎙️ "Hello"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="What can you do?">
+                            <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                            <span>🎙️ "What can you do?"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="Enable high contrast">
+                            <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+                            <span>🎙️ "Enable high contrast"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="Increase text size">
+                            <i class="fa-solid fa-font" aria-hidden="true"></i>
+                            <span>🎙️ "Increase text size"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="Read this page">
+                            <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                            <span>🎙️ "Read this page"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="Open settings">
+                            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                            <span>🎙️ "Open settings"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="What time is it?">
+                            <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                            <span>🎙️ "What time is it?"</span>
+                        </button>
+                        <button class="demo-chip-btn" data-command="Stop speaking">
+                            <i class="fa-solid fa-volume-xmark" aria-hidden="true"></i>
+                            <span>🎙️ "Stop speaking"</span>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- VIEW 2: PAGE READER -->
+            <section id="view-reader" class="tab-view" role="tabpanel" aria-labelledby="tab-reader">
+                
+                <!-- PAGE READER CONTROLS BAR -->
+                <div class="card reader-controls-card">
+                    <div class="reader-controls-header">
+                        <div>
+                            <h2><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i> Text-to-Speech Page Reader</h2>
+                            <p>Listen to article content read aloud with real-time text highlighting.</p>
+                        </div>
+                        <div class="reader-voice-status">
+                            <span id="reader-status-badge" class="badge badge-neutral">Stopped</span>
+                        </div>
+                    </div>
+
+                    <div class="reader-controls-toolbar">
+                        <!-- Playback Action Buttons -->
+                        <div class="control-btn-group">
+                            <button id="reader-play-btn" class="btn btn-primary" title="Start Reading Page">
+                                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                <span>▶ Start Reading</span>
+                            </button>
+                            <button id="reader-pause-btn" class="btn btn-secondary" title="Pause Reading" disabled>
+                                <i class="fa-solid fa-pause" aria-hidden="true"></i>
+                                <span>⏸ Pause</span>
+                            </button>
+                            <button id="reader-resume-btn" class="btn btn-secondary hidden" title="Resume Reading">
+                                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                <span>▶ Resume</span>
+                            </button>
+                            <button id="reader-stop-btn" class="btn btn-danger-outline" title="Stop Reading" disabled>
+                                <i class="fa-solid fa-square" aria-hidden="true"></i>
+                                <span>⏹ Stop</span>
+                            </button>
+                        </div>
+
+                        <!-- Speed Controls -->
+                        <div class="reader-speed-group">
+                            <span class="control-label"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Reading Speed:</span>
+                            <div class="btn-group-toggle" role="radiogroup" aria-label="Reading Speed Options">
+                                <button class="speed-option-btn" data-speed="0.75" aria-checked="false">Slow (0.75x)</button>
+                                <button class="speed-option-btn active" data-speed="1.0" aria-checked="true">Normal (1x)</button>
+                                <button class="speed-option-btn" data-speed="1.5" aria-checked="false">Fast (1.5x)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SAMPLE ACCESSIBLE ARTICLE TO READ -->
+                <article id="page-reader-content" class="card article-card">
+                    <header class="article-header">
+                        <span class="article-tag">Accessibility Guide</span>
+                        <h1 class="article-title" data-read-block>Empowering Independence Through Voice Accessibility</h1>
+                        <p class="article-meta" data-read-block>Published by AccessVoice AI Team • Designed for inclusive web navigation.</p>
+                    </header>
+                    <hr class="divider">
+                    <div class="article-body">
+                        <p class="article-paragraph" data-read-block>
+                            Modern web design must prioritize universal access. Voice-driven interfaces allow individuals with visual impairments, motor disabilities, or age-related limitations to operate digital tools effortlessly.
+                        </p>
+
+                        <h2 class="article-heading" data-read-block>Key Accessibility Principles</h2>
+                        <ul class="article-list">
+                            <li data-read-block><strong>High Contrast Color Schemes:</strong> Ensures high legibility for users with low vision or color blindness.</li>
+                            <li data-read-block><strong>Flexible Text Sizing:</strong> Allows dynamic magnification without breaking screen layouts.</li>
+                            <li data-read-block><strong>Keyboard First Design:</strong> Every function can be activated using simple keystrokes.</li>
+                            <li data-read-block><strong>Voice Command Intelligence:</strong> Natural language processing converts spoken phrases directly into interface actions.</li>
+                        </ul>
+
+                        <h2 class="article-heading" data-read-block>How AccessVoice AI Helps You</h2>
+                        <p class="article-paragraph" data-read-block>
+                            AccessVoice AI acts as a dedicated assistant. You can request text-to-speech page reading, switch visual themes, view command history, or summon emergency guidance using voice commands.
+                        </p>
+                    </div>
+                </article>
+
+            </section>
+
+
+            <!-- VIEW 3: COMMAND HISTORY -->
+            <section id="view-history" class="tab-view" role="tabpanel" aria-labelledby="tab-history">
+                <div class="card history-card">
+                    <div class="card-header history-header">
+                        <div>
+                            <h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Voice Command History</h2>
+                            <p>Review recent spoken commands and assistant actions.</p>
+                        </div>
+                        <div class="history-actions">
+                            <button id="clear-history-btn" class="btn btn-danger-outline">
+                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Clear History
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search / Filter History -->
+                    <div class="history-filter-bar">
+                        <div class="input-icon-group">
+                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                            <input type="text" id="history-search-input" class="form-control" placeholder="Search commands in history..." aria-label="Search command history">
+                        </div>
+                    </div>
+
+                    <!-- History Table Container -->
+                    <div class="history-table-wrapper">
+                        <table class="history-table" aria-label="Command History Log">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Time</th>
+                                    <th scope="col">Command Spoken</th>
+                                    <th scope="col">Action Taken</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <!-- Dynamically populated by script.js -->
+                            </tbody>
+                        </table>
+                        <div id="history-empty-msg" class="empty-state hidden">
+                            <i class="fa-solid fa-inbox" aria-hidden="true"></i>
+                            <p>No voice command history found.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- VIEW 4: ACCESSIBILITY SETTINGS -->
+            <section id="view-settings" class="tab-view" role="tabpanel" aria-labelledby="tab-settings">
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-sliders" aria-hidden="true"></i> Accessibility & System Settings</h2>
+                        <p>Customize AccessVoice AI to match your personal accessibility preferences. All settings automatically save.</p>
+                    </div>
+
+                    <div class="settings-grid">
+                        
+                        <!-- Setting 1: Text Size -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="setting-text-size" class="setting-title"><i class="fa-solid fa-text-height" aria-hidden="true"></i> Text Size</label>
+                                <p class="setting-desc">Adjust the global display font size across the application.</p>
+                            </div>
+                            <div class="setting-control">
+                                <select id="setting-text-size" class="form-select">
+                                    <option value="small">Small (14px base)</option>
+                                    <option value="normal" selected>Normal (16px base)</option>
+                                    <option value="large">Large (20px base)</option>
+                                    <option value="xlarge">Extra Large (24px base)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Setting 2: Contrast Theme -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="setting-contrast" class="setting-title"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> Color Contrast</label>
+                                <p class="setting-desc">Switch between standard color theme and ultra-high contrast dark theme.</p>
+                            </div>
+                            <div class="setting-control">
+                                <select id="setting-contrast" class="form-select">
+                                    <option value="normal" selected>Normal Mode</option>
+                                    <option value="high">High Contrast Mode</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Setting 3: Voice Feedback Speed -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="setting-voice-speed" class="setting-title"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Voice Feedback Speed</label>
+                                <p class="setting-desc">Set how fast the assistant speaks voice responses.</p>
+                            </div>
+                            <div class="setting-control">
+                                <select id="setting-voice-speed" class="form-select">
+                                    <option value="0.75">Slow (0.75x)</option>
+                                    <option value="1.0" selected>Normal (1.0x)</option>
+                                    <option value="1.5">Fast (1.5x)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Setting 4: Spoken Voice Feedback -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="setting-voice-feedback" class="setting-title"><i class="fa-solid fa-volume-high" aria-hidden="true"></i> Voice Feedback</label>
+                                <p class="setting-desc">Enable or disable spoken voice responses from the assistant.</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="setting-voice-feedback" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-text" id="voice-feedback-status-text">ON</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Setting 5: Smooth Animations -->
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <label for="setting-animations" class="setting-title"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> UI Animations</label>
+                                <p class="setting-desc">Enable or disable visual ripple and transition animations.</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="setting-animations" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-text" id="animations-status-text">ON</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="settings-footer">
+                        <button id="reset-settings-btn" class="btn btn-secondary">
+                            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- VIEW 5: HELP & AVAILABLE COMMANDS -->
+            <section id="view-help" class="tab-view" role="tabpanel" aria-labelledby="tab-help">
+                <div class="card help-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Supported Voice Commands Guide</h2>
+                        <p>Say any of the following commands or click a command block to test it.</p>
+                    </div>
+
+                    <div class="help-categories-grid">
+                        
+                        <!-- Category 1: Navigation -->
+                        <div class="help-category-card">
+                            <div class="category-header">
+                                <i class="fa-solid fa-compass" aria-hidden="true"></i>
+                                <h3>Navigation</h3>
+                            </div>
+                            <ul class="command-list">
+                                <li class="command-item" data-test-cmd="Go home">
+                                    <code>"Go home"</code>
+                                    <span>Opens the main dashboard</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Open settings">
+                                    <code>"Open settings"</code>
+                                    <span>Navigates to settings panel</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Open help">
+                                    <code>"Open help"</code>
+                                    <span>Opens this voice command guide</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Show history">
+                                    <code>"Show history"</code>
+                                    <span>Opens the command log</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Category 2: Accessibility -->
+                        <div class="help-category-card">
+                            <div class="category-header">
+                                <i class="fa-solid fa-universal-access" aria-hidden="true"></i>
+                                <h3>Accessibility Controls</h3>
+                            </div>
+                            <ul class="command-list">
+                                <li class="command-item" data-test-cmd="Enable high contrast">
+                                    <code>"Enable high contrast"</code>
+                                    <span>Turns on high contrast theme</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Disable high contrast">
+                                    <code>"Disable high contrast"</code>
+                                    <span>Returns to standard contrast</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Increase text size">
+                                    <code>"Increase text size"</code>
+                                    <span>Magnifies screen font size</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Decrease text size">
+                                    <code>"Decrease text size"</code>
+                                    <span>Reduces screen font size</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Enable large text">
+                                    <code>"Enable large text"</code>
+                                    <span>Sets text size to Large</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Disable large text">
+                                    <code>"Disable large text"</code>
+                                    <span>Resets text size to Normal</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Category 3: Reading Page -->
+                        <div class="help-category-card">
+                            <div class="category-header">
+                                <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+                                <h3>Text-to-Speech & Reading</h3>
+                            </div>
+                            <ul class="command-list">
+                                <li class="command-item" data-test-cmd="Read this page">
+                                    <code>"Read this page"</code>
+                                    <span>Reads article text aloud</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Read the instructions">
+                                    <code>"Read the instructions"</code>
+                                    <span>Reads help instructions</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Read my commands">
+                                    <code>"Read my commands"</code>
+                                    <span>Reads recent voice commands</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Stop speaking">
+                                    <code>"Stop speaking"</code>
+                                    <span>Immediately silences assistant speech</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Category 4: Assistant & Utility -->
+                        <div class="help-category-card">
+                            <div class="category-header">
+                                <i class="fa-solid fa-sparkles" aria-hidden="true"></i>
+                                <h3>Assistant & Utilities</h3>
+                            </div>
+                            <ul class="command-list">
+                                <li class="command-item" data-test-cmd="What can you do?">
+                                    <code>"What can you do?"</code>
+                                    <span>Provides capability overview</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="What time is it?">
+                                    <code>"What time is it?"</code>
+                                    <span>Announces current time</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Clear history">
+                                    <code>"Clear history"</code>
+                                    <span>Wipes out all stored history</span>
+                                </li>
+                                <li class="command-item" data-test-cmd="Repeat that">
+                                    <code>"Repeat that"</code>
+                                    <span>Repeats last speech response</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="app-footer" role="contentinfo">
+            <p>AccessVoice AI Accessibility Assistant • Built for inclusive digital experience.</p>
+            <p class="footer-note">Keyboard Shortcuts: <kbd>Space</kbd> / <kbd>Alt+S</kbd> Speak | <kbd>Esc</kbd> Stop Voice | <kbd>Tab</kbd> Navigate</p>
+        </footer>
+
+    </div>
+
+    <!-- EMERGENCY MODAL OVERLAY -->
+    <div id="emergency-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+        <div class="modal-content modal-danger">
+            <div class="modal-header">
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <h2 id="modal-title">Emergency Assistance Mode</h2>
+            </div>
+            <div class="modal-body">
+                <p id="modal-desc" class="modal-alert-text">
+                    <strong>Warning:</strong> Emergency assistance mode activated.
+                </p>
+                <div class="emergency-callout">
+                    <p>Please contact your local emergency service immediately if you are in danger.</p>
+                    <p class="emergency-demo-note"><em>(Note: This is a technology demonstration feature. No real call or message has been transmitted.)</em></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-emergency-modal-btn" class="btn btn-danger btn-lg">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i> Dismiss Warning
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="script.js"></script>
+</body>
+</html>
